@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "watch": "nodemon ./bin/www",
-    "dev": "DEBUG=express-locallibrary-tutorial:* npm run watch"
+    "build": "npx tsc && npm run build-views && npm run build-public",
+    "build-views": "mkdir ./dist/views && cp ./src/views/* ./dist/views",
+    "build-public": "mkdir ./dist/public && mkdir ./dist/public/stylesheets && cp ./src/public/stylesheets/* ./dist/public/stylesheets",
+    "start": "node dist/app.js",
+    "dev": "nodemon src/app.ts"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
@@ -21,6 +23,14 @@
     "pug": "3.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.0",
+    "@types/luxon": "^3.4.2",
+    "@types/mongoose": "^5.11.96",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.10.5",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   }
 }

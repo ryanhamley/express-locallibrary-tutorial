@@ -1,72 +1,75 @@
-const Author = require("../models/author");
-const Book = require("../models/book");
-const asyncHandler = require("express-async-handler");
-const { body, validationResult } = require("express-validator");
+import Author from '../models/author';
+import Book from '../models/book';
+import asyncHandler from 'express-async-handler';
+import { body, validationResult } from 'express-validator';
+
+import type { Response, Request, NextFunction } from 'express';
+import type ExpressError from '../types/express-error';
 
 // Display list of all Authors.
-exports.author_list = asyncHandler(async (req, res, next) => {
+const authorList = asyncHandler(async (req: Request, res: Response) => {
   const allAuthors = await Author.find().sort({ family_name: 1 }).exec();
-  res.render("author_list", {
-    title: "Author List",
+  res.render('author_list', {
+    title: 'Author List',
     author_list: allAuthors,
   });
 });
 
 // Display detail page for a specific Author.
-exports.author_detail = asyncHandler(async (req, res, next) => {
+const authorDetail = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   // Get details of author and all their books (in parallel)
   const [author, allBooksByAuthor] = await Promise.all([
     Author.findById(req.params.id).exec(),
-    Book.find({ author: req.params.id }, "title summary").exec(),
+    Book.find({ author: req.params.id }, 'title summary').exec(),
   ]);
 
   if (author === null) {
     // No results.
-    const err = new Error("Author not found");
+    const err: ExpressError = new Error('Author not found');
     err.status = 404;
     return next(err);
   }
 
-  res.render("author_detail", {
-    title: "Author Detail",
+  res.render('author_detail', {
+    title: 'Author Detail',
     author: author,
     author_books: allBooksByAuthor,
   });
 });
 
 // Display Author create form on GET.
-exports.author_create_get = (req, res, next) => {
-  res.render("author_form", { title: "Create Author" });
+const authorCreateGet = (req: Request, res: Response) => {
+  res.render('author_form', { title: 'Create Author' });
 };
 
 // Handle Author create on POST.
-exports.author_create_post = [
+const authorCreatePost = [
   // Validate and sanitize fields.
-  body("first_name")
+  body('first_name')
     .trim()
     .isLength({ min: 1 })
     .escape()
-    .withMessage("First name must be specified.")
+    .withMessage('First name must be specified.')
     .isAlphanumeric()
-    .withMessage("First name has non-alphanumeric characters."),
-  body("family_name")
+    .withMessage('First name has non-alphanumeric characters.'),
+  body('family_name')
     .trim()
     .isLength({ min: 1 })
     .escape()
-    .withMessage("Family name must be specified.")
+    .withMessage('Family name must be specified.')
     .isAlphanumeric()
-    .withMessage("Family name has non-alphanumeric characters."),
-  body("date_of_birth", "Invalid date of birth")
-    .optional({ values: "falsy" })
+    .withMessage('Family name has non-alphanumeric characters.'),
+  body('date_of_birth', 'Invalid date of birth')
+    .optional({ values: 'falsy' })
     .isISO8601()
     .toDate(),
-  body("date_of_death", "Invalid date of death")
-    .optional({ values: "falsy" })
+  body('date_of_death', 'Invalid date of death')
+    .optional({ values: 'falsy' })
     .isISO8601()
     .toDate(),
 
   // Process request after validation and sanitization.
-  asyncHandler(async (req, res, next) => {
+  asyncHandler(async (req: Request, res: Response) => {
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
@@ -80,8 +83,8 @@ exports.author_create_post = [
 
     if (!errors.isEmpty()) {
       // There are errors. Render form again with sanitized values/errors messages.
-      res.render("author_form", {
-        title: "Create Author",
+      res.render('author_form', {
+        title: 'Create Author',
         author: author,
         errors: errors.array(),
       });
@@ -98,37 +101,37 @@ exports.author_create_post = [
 ];
 
 // Display Author delete form on GET.
-exports.author_delete_get = asyncHandler(async (req, res, next) => {
+const authorDeleteGet = asyncHandler(async (req: Request, res: Response) => {
   // Get details of author and all their books (in parallel)
   const [author, allBooksByAuthor] = await Promise.all([
     Author.findById(req.params.id).exec(),
-    Book.find({ author: req.params.id }, "title summary").exec(),
+    Book.find({ author: req.params.id }, 'title summary').exec(),
   ]);
 
   if (author === null) {
     // No results.
-    res.redirect("/catalog/authors");
+    res.redirect('/catalog/authors');
   }
 
-  res.render("author_delete", {
-    title: "Delete Author",
+  res.render('author_delete', {
+    title: 'Delete Author',
     author: author,
     author_books: allBooksByAuthor,
   });
 });
 
 // Handle Author delete on POST.
-exports.author_delete_post = asyncHandler(async (req, res, next) => {
+const authorDeletePost = asyncHandler(async (req: Request, res: Response) => {
   // Get details of author and all their books (in parallel)
   const [author, allBooksByAuthor] = await Promise.all([
     Author.findById(req.params.id).exec(),
-    Book.find({ author: req.params.id }, "title summary").exec(),
+    Book.find({ author: req.params.id }, 'title summary').exec(),
   ]);
 
   if (allBooksByAuthor.length > 0) {
     // Author has books. Render in same way as for GET route.
-    res.render("author_delete", {
-      title: "Delete Author",
+    res.render('author_delete', {
+      title: 'Delete Author',
       author: author,
       author_books: allBooksByAuthor,
     });
@@ -136,51 +139,51 @@ exports.author_delete_post = asyncHandler(async (req, res, next) => {
   } else {
     // Author has no books. Delete object and redirect to the list of authors.
     await Author.findByIdAndDelete(req.body.authorid);
-    res.redirect("/catalog/authors");
+    res.redirect('/catalog/authors');
   }
 });
 
 // Display Author update form on GET.
-exports.author_update_get = asyncHandler(async (req, res, next) => {
+const authorUpdateGet = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   const author = await Author.findById(req.params.id).exec();
   if (author === null) {
     // No results.
-    const err = new Error("Author not found");
+    const err: ExpressError = new Error('Author not found');
     err.status = 404;
     return next(err);
   }
 
-  res.render("author_form", { title: "Update Author", author: author });
+  res.render('author_form', { title: 'Update Author', author: author });
 });
 
 // Handle Author update on POST.
-exports.author_update_post = [
+const authorUpdatePost = [
   // Validate and sanitize fields.
-  body("first_name")
+  body('first_name')
     .trim()
     .isLength({ min: 1 })
     .escape()
-    .withMessage("First name must be specified.")
+    .withMessage('First name must be specified.')
     .isAlphanumeric()
-    .withMessage("First name has non-alphanumeric characters."),
-  body("family_name")
+    .withMessage('First name has non-alphanumeric characters.'),
+  body('family_name')
     .trim()
     .isLength({ min: 1 })
     .escape()
-    .withMessage("Family name must be specified.")
+    .withMessage('Family name must be specified.')
     .isAlphanumeric()
-    .withMessage("Family name has non-alphanumeric characters."),
-  body("date_of_birth", "Invalid date of birth")
-    .optional({ values: "falsy" })
+    .withMessage('Family name has non-alphanumeric characters.'),
+  body('date_of_birth', 'Invalid date of birth')
+    .optional({ values: 'falsy' })
     .isISO8601()
     .toDate(),
-  body("date_of_death", "Invalid date of death")
-    .optional({ values: "falsy" })
+  body('date_of_death', 'Invalid date of death')
+    .optional({ values: 'falsy' })
     .isISO8601()
     .toDate(),
 
   // Process request after validation and sanitization.
-  asyncHandler(async (req, res, next) => {
+  asyncHandler(async (req: Request, res: Response) => {
     // Extract the validation errors from a request.
     const errors = validationResult(req);
 
@@ -195,8 +198,8 @@ exports.author_update_post = [
 
     if (!errors.isEmpty()) {
       // There are errors. Render the form again with sanitized values and error messages.
-      res.render("author_form", {
-        title: "Update Author",
+      res.render('author_form', {
+        title: 'Update Author',
         author: author,
         errors: errors.array(),
       });
@@ -208,3 +211,14 @@ exports.author_update_post = [
     }
   }),
 ];
+
+export default {
+  authorList,
+  authorDetail,
+  authorCreateGet,
+  authorCreatePost,
+  authorDeleteGet,
+  authorDeletePost,
+  authorUpdateGet,
+  authorUpdatePost,
+};
