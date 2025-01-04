@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "npx tsc",
+    "build": "npx tsc && npm run build-views && npm run build-public",
+    "build-views": "mkdir ./dist/views && cp ./src/views/* ./dist/views",
+    "build-public": "mkdir ./dist/public && mkdir ./dist/public/stylesheets && cp ./src/public/stylesheets/* ./dist/public/stylesheets",
     "start": "node dist/app.js",
     "dev": "nodemon src/app.ts"
   },
